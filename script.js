@@ -231,20 +231,3 @@ btnSort.addEventListener('click', function (e) {
   displayMovements(currentAccount, !sorted);
   sorted = !sorted;
 });
-
-//////////////////////////////////////////////////////////////////////
-///Exercises
-
-// console.log(+'23');
-// console.log(Number.parseInt(' 3.2px'));
-// console.log(Number.parseFloat('3.2p1x'));
-
-// console.log(Number.isNaN(+'23x'));
-//is finite da var
-
-// console.log(Number.isInteger(23.1));
-
-// const arr = [1, 2, 3, 4];
-// console.log(Math.max(...arr));
-
-// console.log(Math.round(23.49));
