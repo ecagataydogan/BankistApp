@@ -74,18 +74,6 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 /////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// LECTURES
-
-const currencies = new Map([
-  ['USD', 'United States dollar'],
-  ['EUR', 'Euro'],
-  ['GBP', 'Pound sterling'],
-]);
-
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-
-/////////////////////////////////////////////////
 
 let currentAccount;
 let sorted = false;
@@ -114,10 +102,16 @@ const displayMovements = function (account, sort = false) {
   mov.forEach(function (mov, i, arr) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
+    const date = new Date(account.movementsDates[i]);
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
+    const displayDate = `${day}/${month}/${year}`;
+
     const html = `<div class="movements__row">
     <div class="movements__type movements__type--${type}">${i + 1} ${type}</div>
-    <div class="movements__date">3 days ago</div>
-    <div class="movements__value">${mov.toFixed(2)}</div>
+    <div class="movements__date">${displayDate}</div>
+    <div class="movements__value">${mov.toFixed(2)} $</div>
   </div>`;
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
@@ -163,11 +157,30 @@ const calcDisplaySummary = function (account) {
   labelSumInterest.textContent = `${account.interest.toFixed(2)}`;
 };
 
+const startLogoutTimer = function () {
+  let time = 300;
+  const timer = setInterval(() => {
+    const min = Math.trunc(time / 60);
+    const sec = String(time % 60).padStart(2, 0);
+    labelTimer.textContent = `${min}:${sec}`;
+    time--;
+    if (time === -1) {
+      clearInterval(timer);
+      labelWelcome.textContent = `Welcome back ${
+        currentAccount.owner.split(' ')[0]
+      }`;
+      containerApp.style.opacity = 0;
+    }
+  }, 1000);
+};
+
 const updateUI = function () {
   calcDisplaySummary(currentAccount);
   calcDisplayBalance(currentAccount);
   displayMovements(currentAccount);
 };
+
+//Event Handlers
 
 btnLogin.addEventListener('click', function (e) {
   e.preventDefault();
@@ -179,7 +192,21 @@ btnLogin.addEventListener('click', function (e) {
     labelWelcome.textContent = `Welcome back ${
       currentAccount.owner.split(' ')[0]
     }`;
+    startLogoutTimer();
     updateUI();
+    const now = new Date();
+    const options = {
+      hour: 'numeric',
+      minute: 'numeric',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      weekday: 'long',
+    };
+    labelDate.textContent = new Intl.DateTimeFormat(
+      currentAccount.locale,
+      options
+    ).format(now);
   }
   inputLoginUsername.value = inputLoginPin.value = '';
 });
@@ -191,6 +218,7 @@ btnTransfer.addEventListener('click', function (e) {
       if (acc.userName === inputTransferTo.value) {
         acc.movements.push(Number(inputTransferAmount.value));
         currentAccount.movements.push(-Number(inputTransferAmount.value));
+        currentAccount.movementsDates.push(new Date());
         updateUI();
       }
     });
@@ -204,8 +232,11 @@ btnLoan.addEventListener('click', function (e) {
   const amount = Math.floor(Number(inputLoanAmount.value));
 
   if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
-    currentAccount.movements.push(amount);
-    updateUI();
+    setTimeout(() => {
+      currentAccount.movements.push(amount);
+      currentAccount.movementsDates.push(new Date());
+      updateUI();
+    }, 2500);
     inputLoanAmount.value = '';
   }
 });
